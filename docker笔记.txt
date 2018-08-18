@@ -1,0 +1,148 @@
+docker image ls #查看镜像
+docker images   #查看镜像
+docker version   #查看docker 版本
+#将vagrant加入dockerzu#
+sudo groupadd docker
+sudo gpasswd -a vagrant docker
+sudo service docker restart
+
+docker pull hello-world #从docker库拉取镜像
+
+docker run [image-name]#启动容器
+#Dockerfile#
+FROM stratch     #制作BASE IMAGES   
+FROM centos     #使用BASE IMAGES
+LABEL maintainer="david@qq.com"    #注释
+LABEL version="1.0"	              #注释
+LABEL description="This is description"#注释
+
+RUN    yum -y install  vim && touch test.php \
+    	mv test.php text.php \   #运行命令 --------执行一次就要生成一层layer,所有尽可能写一行&& 隔开
+WORKDIR                    #设定当前工作的目录，如果没有，自动创建目录，用WORKDIR ,不要使用RUN cd 尽量使用绝对目录
+
+ADD hello  /    #添加文件到docker ,大部分情况，COPY由于ADD，添加远程文件/目录使用  RUN curl/wget
+ADD test.tar.gz /       #添加到根目录并加压
+DOPY  hello   test/ 
+ENV    MYSQL_VERSION 5.6      #设置常量 ，尽量使用ENV增加可维护性
+RUN apt-get install -y mysql-server="{MYSQL_VERSION}" \
+         && rm -rf /var/lib/apt/lists/*      #引用常量
+RUN                  #执行命令并创建新的IMAGE LAYER
+CMD                  #设置容器启动后默认执行的命令和参数,如果docker run 指定了其他命令，CMD命令会被忽略，如果定义了多个CMD，只有最后一个会执行
+ENTRYPOINT     #设置容器启动时运行的命令，让容器以应用程序或者服务的形式运行，不会被忽略，一定会执行，最佳实践：写一个shell脚本作为entrypoint  ENTRYPOINT ["docker.sh"]
+VOLUME               #存储
+EXPOSE                 #网络
+docker build -t david/hello-world . #创建镜像
+docker history [imageID]        #查看docker分层
+docker run [imageNAME]       #创建container
+docker container ls                 #查看正在运行容器
+
+
+
+shell格式
+RUN apt-get install -y vim
+exec格式
+RUN ["apt-get", "install","-y","vim"]
+docker container ls -a             #查看所有容器
+docker ps -a                            #查看所有容器
+
+
+docker run -it centos              #交互式方式运行容器
+
+docker container rm [containerID]    #删除container
+docker rm                      #默认删除就是contain
+
+docker image rm [imageID/imageNAME]   #删除镜像
+docker rmi                                                   #删除镜像
+
+docker container ls -aq                                #列出容器ID
+docker container ls -a | awk {'print$1'}         #列出容器ID
+docker rm $(docker container ls -aq)           #删除所有容器
+docker container ls -f "status=exited" -q      #列出所有退出的容器
+docker rm $(docker container ls -f "status=exited" -q)       #列出所有退出的容器
+
+
+docker container commit     [containerNAME]        [tagNAME]                #把修改的容器生成新的容器(把container 创建新的image)
+docker commit                                             #把修改的容器生成新的容器(把container 创建新的image)
+
+
+docker image build -t  [tagNAME]                          #创建新的镜像
+docker build               			#创建新的镜像
+
+docker login     #登陆docker-hub
+docker image push   [imageNAME]    #image 分发 推到docker-hub
+docker push    [imageNAME]             #image分发，推到docker-hub
+docker pull  [imageNAME]                #从docker-hub拉取imge
+
+docker run -d -p 5000:5000 --restart always --name registry registry:2 #通过image创建本地image库
+#push在/etc/docker下vi daemon.json 写入{["insecure-registries":["10.75.44.222:5000"]} 
+然后vi /lib/systemd/system/docker.service 加入一行EnvironmentFile=-/etc/docker/daemon.json
+然后sudo service docker restart#
+
+#
+查看是否PUSH到本地库成功，docker提供了API 0.0.0.0:0000/v2/.catlog
+详见docker官网文档
+#
+#把python程序打造成image#
+#Dockerfile
+FROM python:2.7
+LABEL maitainer = "david"
+RUN pip install flask 
+COPY app.py /app
+EXPOSE 5000
+CMD ["python","app.py"]
+#调试docker---进入到临时生成的image查看相应的错误步骤#
+docker run -it ["临时生成的imageID"] /bin/bash     #常驻内存的程序
+
+#对运行中的容器执行命令
+docker exec -it [containerID]例11duid555444 [command]例/bin/bash  #交互式的在运行中容器中执行命令
+docker exec -it 11q8en3398d ip a #打印IP
+docker container stop      #停止运行的容器
+docker stop 	         #停止运行的容器
+docker container start      #启动容器
+docker start	         #启动容器
+docker run -d -name=demo david/vim  #给容器自定义一个名字
+
+
+docker inspect  [containerNAME] #显示出container详细的信息
+docker logs  [containerID]            #容器的运行信息
+
+
+#压力测试#
+stress --vm 1 --vm-bytes 50000M  --verbose
+#创建压力测试Dockerfile#
+FROM ubuntu
+RUN apt-get update && apt-get -y install
+ENTRYPOINT ["/use/bin/stress"]
+CMD []      #留空表示可以在外部传值
+docker build -t david/stress
+docker run -it [imageNAME] --vm 1 --verbose #run 加上命令参数#命令行工具
+
+
+
+
+#######namespace############################
+docker run -d --name test1 busybox /bin/bash -c "while true; do sleep 3600 done"   
+后台运行busybox,起名字test1,运行一个命令while循环
+sudo ip netns list ##查看本机的network namespace
+sudo ip netns delete [networkNAME] ##删除
+sudo ip netns add [networkNAME]    ##添加
+sudo ip netns exec [networkNAME] ip a#在[networkNAME]namespace里执行 ip a 命令
+sudo ip netns exec [networkNAME] ip link #在[networkNAME]namespace里执行 ip link 命令
+sudo ip netns exec [networkNAME] ip link set dev lo up#在[networkNAME]namespace里执行 ip link set dev lo up 命令
+
+#创建linux veth 虚拟线#
+sudo ip link add veth-test1 type veth peer name veth-test2
+#给namespace添加veth#
+sudo ip link set veth-test2 netns test2
+sudo ip link set veth-test1 netns test1
+#查看test1的link#
+sudo ip netns exec test1 ip link
+#给veth添加ip#
+sudo ip netns exec test2 ip addr add 192.168.1.2/24 dev veth-test2
+sudo ip netns exec test1 ip addr add 192.168.1.1/24 dev veth-test1
+#set namespace up#
+sudo ip netns exec test2 ip link set dev veth-test2 up
+sudo ip netns exec test1 ip link set dev veth-test1 up
+#查看namespace#
+sudo ip netns exec test1 ip link
+sudo ip netns exec test1 ip a

@@ -1,0 +1,31 @@
+缓存
+proxy_cache配置语法
+缓存路径
+proxy_cache_path path 
+default:__
+contentext:http
+缓存开关
+proxy_cache zone(NAME) | off
+default: proxy_cache off
+context:http  server   location
+缓存过期周期
+proxy_cache_valid [code ......返回状态码 200 301  302  505  404 等] time
+default: --
+context:http server location
+缓存的维度
+proxy_cache_key string
+dafault:proxy_cache_key $scheme$proxy_host$request_uri
+context: http server location
+
+
+配置实例
+缓存路径：proxy_cache_path /opt/app/cache[路径] levels=1:2[目录分级] key_zone=david_cache[zone NAME]:10m[SIZE] max_size=10g inactive=60m[不活跃的文件60分钟被删掉] use_temp_path=off[存放临时文件，建议关闭]
+http内server外
+缓存配置
+proxy_cache david_cache;
+proxy_pass http://david;
+proxy_cache_valid 200 304 12h;
+proxy_cache_valid any 10m
+proxy_cache_key $host$uri$is_args$args
+add_header Nginx-Cache "$updatream_cache_statux";
+proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http:504;

@@ -1,0 +1,58 @@
+https://github.com/kubernetes/minikube //搭建单节点
+https://github.com/kubernetes/kubeadm //搭建多节点/集群
+https://github.com/kubernetes/kops        //在cloud安装一个集群
+
+创建一个单节点的minicube集群
+1 linux下载minikube可执行文件
+2 安装几个依赖条件
+安装kubectl
+	下载可执行文件，修改权限
+3创建单节点的k8s集群
+minikube start
+4创建minikube配置文件
+ kubectl config get-contexts #查看配置文件
+kubectl cluster-info #查看当前集群的情况
+minikube ssh #进入到k8s的机器
+
+创建pod
+kubectl create -f pod_nginx.yml #创建
+kubectl delete -f pod_nginx.yml #删除
+
+查看k8s的状态
+minikube version
+#查看pods状态
+kubectl get pods
+kubetel get pods -o wide #x显示pod的详细信息
+minikube ssh #进入kube虚拟机
+docker ps #列出docker
+docker exec it [containerID] sh #交互式进入docker
+通过docker network查看pods的网络情况
+docker network ls
+docker inspect bridge
+kubectl get pods -o wide 
+##对pods进行exec
+kubectl exec -it nginx sh ##kubectl exec 不指定参数模式进入第一个pod，-c containerNAME进入指定的POD
+kubectl describe pods nginx #详细信息
+##映射端口
+kubectl port-forword nginx 8080:80 
+kubectl get [nodNAME] ##查看nod
+kubectl scale rc nginx --replicas=2##横向扩展  
+
+
+
+#deployment#
+和创建pod一样，通过声明yml文件 kubectl create -f [xxx.yml]
+kubectl get deployment ## 查看deployment状态
+kubectl get deployment -o wide ##查看更多信息
+#deployment#升级
+kubectl set image deployment nginx-deployment nginx=nginx:1.13
+#查看deployment的history#
+kubectl rollout history deployment [deploymentNAME]
+kubectl rollout undo deployment [deploymentNAME]
+#暴露端口#
+kubectl expose deployment nginx-deployment --type=NodePort
+kubectl delete service [NAME] #删除
+kubectl get svc #查看
+#service#
+kubectl expose pods [podNAME]#给指定的POD创建service类型为clusterIP
+

@@ -1,0 +1,67 @@
+#docker-swarm#
+通过vagrant+virtualbox安装
+ip a #docker查看IP
+docker swarm init --advertise-addr=192.168.205.10#初始化一个cluster宣告一个地址
+#根据docker swarm 主机的启动命令下一步提示，将节点机加入集群#
+#安装netsta#
+yum install net-tools
+docker node ls #显示当前swarm 的节点#
+
+docker service create --name demo busybox sh -c "while true sleep 3600; done"#创建docker服务#命令类似于docker run
+docker service ls #查看service运行情况#
+docker service ps [serviceNAME] #查看service的详情
+docker service scale demo=5#swarm水平扩展
+docker service rm demo#删除swarm service
+#使用docker swarm 方式安装workpress#
+1 docker network create -d overlay demo #创建网络
+2 docker network ls #查看创建的网络
+3 创建mysql
+   docker service create --name mysql --network demo --env MYSQL_ROOT_PASSWORD=root --env MYSQL_DATABASE=wordpress --mount type=volum,source=mysql-data,destination=/var/mysql mysql
+4 创建wordpress
+   docker service create --name wordpress -p 80:80 --network demo --env WORDPRESS_DB_PASSWORD=root --env WORDPRESS_DB_HOST=mysql wordpress
+#RoutingMesh实验环境#
+#internal#
+docker network create -d overlay demo #创建diver是overlay的网络
+docker service create --name whoami 8000:8000 --network demo -d jwilder/whoami #创建一个SERVICE
+docker service create --name client --d --network demo busybox sh -c "while true; do sleep 3600; done"
+docker service ls #查看启动的服务
+docker service ps [serviceNAME] #查看服务的详情
+docker service scale whoami=2#水平扩展whoami
+nslookup #查询DNS 
+#Routing Mesh的两种体现#
+Internal------Container和Container之间的访问通过overlay网络（通过VIP虚拟IP）
+Ingress------如果服务有绑定接口，则此服务可以通过任意swarm节点的相应接口访问
+#ingress#
+#等待补齐#
+#docker stack 部署wordpress#
+创建docker-compose文件
+#敲一遍chapter7中的docker-compose.yml示例，wordpress和vorting#
+在docker swarm 中部署docker-compose使用docker stack
+docker stack  deploy wordpress --compose-file=docker-compose.yml
+docker stack deplay wordpress -c=docker-compse.yml#简化命令
+docker stack ls #列举docker stack
+docker stack ps [serviceNAME] #查看进程
+docker stack rm #停止并删除服务
+#docker seceret 管理#
+docker secret sreate [fileNAME] #以文件的方式创建secret
+docker secret ls #列出secret
+echo "admin123" | docker secret create my-pass - #命令行方式创建secret
+#创建服务加入secret参数#
+docker service create --name client --secret my-pass busybox sh -c "while true; do sleep 3600; done"
+#sceret文件的位置，/run/secrets#
+#使用secret创建mysql#
+docker service create --name db --secret my-ps -e MYSQL_ROOT_PASSWORD_FILE=/run/secrets/my-pw mysql
+#service 更新#示例
+docker network ls 
+docker network create -d overlay demo #创建overlay 网络
+docker service create --name web --public 8080:5000 --network demo xiaopeng163/python-flask-demo:1.0 #创建服务
+docker service scale web=2 #水平扩展
+docker service ps #查看服务
+curl 127.0.0.1:8080 #通过curl访问服务
+sh -c "while true; do curl 127.0.0.1:8080&&sleep 1; done"#在另一台swarm-worker上执行循环访问脚本
+docker service update --image xiaopeng163/python-flask-demo:2.0 demo #演示更新image
+docker service update --help ##查看update 更新的帮助
+docker service update --publish -rm 8080:500 --publish -add 8088:5000 web ##更新端口
+
+docker stack#更新
+#docker stack 更新,docker stack 没有update 命令，只能通过修改docker-compose.yml文件，再deploy一次#
