@@ -1,0 +1,11 @@
+docker could
+提供容器的管理，编排，部署的托管服务
+#主要模块#
+1关联云服务商
+2天剑节点作为docker host
+3创建服务service
+4创建stack
+5image管理
+#两个模式#
+standard模式  --单机
+swarm模式   --集群
