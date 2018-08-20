@@ -1,0 +1,4 @@
+Q:git push origin master-----------------refuse
+A:git pull ->git push origin master
+Q:pull ------------------------fatal: refusing to merge unrelated histories
+A:git pull origin master --allow-unrelated-histories
