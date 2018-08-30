@@ -14,10 +14,6 @@ FROM php:7.2-fpm
 # 5. Line `&& :\` is just for better reading and do nothing.
 RUN apt-get update \
     && apt-get install -y libfreetype6-dev libjpeg62-turbo-dev libpng-dev \
-    && libz-dev libmemcached-dev \
-    && docker-php-ext-install gd \
-    && vim
-    && git
     && docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
     && docker-php-ext-install gd \
     && :\
@@ -48,7 +44,20 @@ RUN apt-get update \
     && docker-php-ext-install sysvmsg \
     && docker-php-ext-install sysvsem \
     && docker-php-ext-install sysvshm \
-    && docker-php-ext-install opcache \
+    && docker-php-ext-install opcache 
+COPY redis-3.1.6.tgz /home/redis-3.1.6.tgz
+COPY memcached-3.0.4.tgz /home/memcached-3.0.4.tgz
+COPY xdebug-2.6.0.tgz /home/xdebug-2.6.0.tgz
+RUN apt-get update && apt-get install -y \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libmcrypt-dev \
+    libpng-dev \
+    git \
+    vim \
+    libz-dev libmemcached-dev \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install pdo_mysql \
     && pecl install redis-3.1.6.tgz && echo "extension=redis.so" > /usr/local/etc/php/conf.d/redis.ini \
     && pecl install memcached-3.0.4.tgz && echo "extension=memcached.so" > /usr/local/etc/php/conf.d/memcached.ini \
     && rm -r /home/memcached-3.0.4.tgz \
@@ -64,7 +73,7 @@ RUN apt-get update \
     && ./configure --with-php-config=/usr/local/bin/php-config \
     && make && make install \
     && echo "extension=memcache.so" > /usr/local/etc/php/conf.d/memcache.ini \
-    && rm -rf memcache
+    && rm -rf memcache 
     #&& docker-php-ext-install pdo_firebird \
     #&& docker-php-ext-install pdo_dblib \
     #&& docker-php-ext-install pdo_oci \
