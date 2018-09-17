@@ -7,7 +7,7 @@ docker swarm init --advertise-addr=192.168.205.10#初始化一个cluster宣告一个地址
 yum install net-tools
 docker node ls #显示当前swarm 的节点#
 
-docker service create --name demo busybox sh -c "while true sleep 3600; done"#创建docker服务#命令类似于docker run
+docker service create --name demo busybox sh -c "while true;sleep 3600; done"#创建docker服务#命令类似于docker run
 docker service ls #查看service运行情况#
 docker service ps [serviceNAME] #查看service的详情
 docker service scale demo=5#swarm水平扩展

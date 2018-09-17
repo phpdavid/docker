@@ -1,0 +1,6 @@
+    && git clone https://github.com/websupport-sk/pecl-memcache memcache \
+    && cd memcache \
+    && /usr/local/bin/phpize \
+    && ./configure --with-php-config=/usr/local/bin/php-config \
+    && make && make install \
+    && echo "extension=memcache.so" > /usr/local/etc/php/conf.d/memcache.ini \
