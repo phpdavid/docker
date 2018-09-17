@@ -75,6 +75,14 @@ services:
     networks:
       docker_net:
         ipv4_address: ${REDIS_IP}
+        
+    memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    networks:
+      docker_net:
+        ipv4_address: ${MEMCACHED_IP}
 
   portainer:
     image: portainer/portainer:latest
